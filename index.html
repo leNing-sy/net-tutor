@@ -18,7 +18,7 @@
     import { createTopology } from './src/engine/topology.js';
     import { simulate } from './src/engine/engine.js';
     import { createUi } from './src/ui/ui.js';
-    import { spec, injections } from './src/lessons/stage0.js';
+    import { spec, injections } from './src/lessons/stage3.js';
 
     // 运行模拟
     const topology = createTopology(spec);
@@ -26,9 +26,9 @@
 
     console.log(`生成了 ${events.length} 个事件`);
 
-    // 创建 UI
+    // 创建 UI（阶段 3 启用 STP 可视化）
     const container = document.getElementById('app');
-    const ui = createUi({ container, topology, events });
+    const ui = createUi({ container, topology, events, spec, options: { showStp: true } });
 
     // 调试：暴露到全局
     window.ui = ui;

@@ -12,12 +12,13 @@
  * @param {HTMLElement} config.container 渲染容器
  * @param {object} config.topology 拓扑对象
  * @param {object[]} config.events 事件数组
+ * @param {object} config.spec 课程规格（含 portConfigs）
  * @param {object} [config.options]
- * @param {boolean} [config.options.showVlan=false] 是否显示 VLAN 着色
+ * @param {boolean} [config.options.showVlan=true] 是否显示 VLAN 着色
  * @param {boolean} [config.options.showStp=false] 是否显示 STP 端口角色
  */
-export function createUi({ container, topology, events, options = {} }) {
-  const { showVlan = false, showStp = false } = options;
+export function createUi({ container, topology, events, spec, options = {} }) {
+  const { showVlan = true, showStp = false } = options;
 
   let currentStep = -1; // 当前播放到哪一步（-1 表示还没开始）
   const state = {
@@ -25,6 +26,23 @@ export function createUi({ container, topology, events, options = {} }) {
     frames: new Map(), // 帧 id → 当前位置
     stpRoles: new Map(), // 节点 id → 端口 id → 角色
     vlanState: new Map(), // 节点 id → 端口 id → 当前 VLAN
+  };
+
+  // 构建端口到 VLAN 的映射
+  const portVlanMap = new Map();
+  if (spec.portConfigs) {
+    for (const cfg of spec.portConfigs) {
+      const key = `${cfg.node}:${cfg.port}`;
+      portVlanMap.set(key, cfg.vlan || cfg.native || 1);
+    }
+  }
+
+  // VLAN 配色方案
+  const vlanColors = {
+    1: { node: '#457b9d', link: '#666' }, // 默认 VLAN：蓝灰
+    10: { node: '#38BDF8', link: '#38BDF8' }, // VLAN 10：青
+    20: { node: '#6EE7B7', link: '#6EE7B7' }, // VLAN 20：翠绿
+    30: { node: '#E9A568', link: '#E9A568' }, // VLAN 30：琥珀
   };
 
   // DOM 元素引用
@@ -85,6 +103,33 @@ export function createUi({ container, topology, events, options = {} }) {
     controls.querySelector('#btn-next').addEventListener('click', () => stepForward());
     controls.querySelector('#btn-reset').addEventListener('click', () => reset());
 
+    // 键盘快捷键
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch (e.key) {
+        case 'ArrowRight':
+          e.preventDefault();
+          stepForward();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          stepBackward();
+          break;
+        case 'Home':
+          e.preventDefault();
+          reset();
+          break;
+        case 'End':
+          e.preventDefault();
+          // 快进到最后一步
+          while (currentStep < events.length - 1) {
+            stepForward();
+          }
+          break;
+      }
+    });
+
     // 绘制拓扑
     renderTopology();
     updateControls();
@@ -105,7 +150,21 @@ export function createUi({ container, topology, events, options = {} }) {
       line.setAttribute('y1', aNode.y);
       line.setAttribute('x2', bNode.x);
       line.setAttribute('y2', bNode.y);
-      line.setAttribute('stroke', '#666');
+
+      // VLAN 着色：如果两端都是 access 口且 VLAN 相同，用 VLAN 颜色
+      let linkColor = '#666';
+      if (showVlan) {
+        const aKey = `${link.a.node}:${link.a.port}`;
+        const bKey = `${link.b.node}:${link.b.port}`;
+        const aVlan = portVlanMap.get(aKey);
+        const bVlan = portVlanMap.get(bKey);
+
+        if (aVlan && bVlan && aVlan === bVlan && vlanColors[aVlan]) {
+          linkColor = vlanColors[aVlan].link;
+        }
+      }
+
+      line.setAttribute('stroke', linkColor);
       line.setAttribute('stroke-width', '2');
       line.setAttribute('data-link-id', link.id);
       elements.svg.appendChild(line);
@@ -118,14 +177,27 @@ export function createUi({ container, topology, events, options = {} }) {
       g.setAttribute('transform', `translate(${node.x}, ${node.y})`);
 
       if (node.kind === 'host') {
-        // 主机：矩形
+        // 主机：矩形，access 口用 VLAN 颜色
         const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
         rect.setAttribute('x', -30);
         rect.setAttribute('y', -20);
         rect.setAttribute('width', 60);
         rect.setAttribute('height', 40);
-        rect.setAttribute('fill', '#a8dadc');
-        rect.setAttribute('stroke', '#457b9d');
+
+        let fillColor = '#a8dadc';
+        let strokeColor = '#457b9d';
+
+        if (showVlan && node.ports.length > 0) {
+          const portKey = `${node.id}:${node.ports[0]}`;
+          const vlan = portVlanMap.get(portKey);
+          if (vlan && vlanColors[vlan]) {
+            fillColor = vlanColors[vlan].node;
+            strokeColor = vlanColors[vlan].node;
+          }
+        }
+
+        rect.setAttribute('fill', fillColor);
+        rect.setAttribute('stroke', strokeColor);
         rect.setAttribute('stroke-width', 2);
         rect.setAttribute('rx', 4);
         g.appendChild(rect);
@@ -355,21 +427,61 @@ export function createUi({ container, topology, events, options = {} }) {
       const nodeGroup = elements.svg.querySelector(`[data-node-id="${nodeId}"]`);
       if (!nodeGroup) continue;
 
-      // 简化：只在节点旁边显示角色文本
-      let existingLabel = nodeGroup.querySelector('.stp-roles');
-      if (!existingLabel) {
-        existingLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-        existingLabel.classList.add('stp-roles');
-        existingLabel.setAttribute('y', 40);
-        existingLabel.setAttribute('text-anchor', 'middle');
-        existingLabel.setAttribute('font-size', 10);
-        existingLabel.setAttribute('fill', '#e63946');
-        nodeGroup.appendChild(existingLabel);
-      }
-      const roleText = Object.entries(roles)
-        .map(([port, role]) => `${port}:${role[0]}`)
-        .join(' ');
-      existingLabel.textContent = roleText;
+      // 在每个端口位置标注角色
+      const node = topology.node(nodeId);
+      const ports = node.ports || [];
+
+      // 清理旧标注
+      const oldLabels = nodeGroup.querySelectorAll('.stp-port-role');
+      oldLabels.forEach((l) => l.remove());
+
+      // 每个端口一个角色标识
+      ports.forEach((portId, idx) => {
+        const role = roles[portId];
+        if (!role) return;
+
+        const roleLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        roleLabel.classList.add('stp-port-role');
+
+        // 角色符号
+        const symbols = {
+          root: '🌳', // 根端口：通往根桥
+          designated: '✓', // 指定端口：转发
+          blocked: '✗', // 阻塞端口：不转发
+        };
+
+        const symbol = symbols[role] || role[0].toUpperCase();
+        roleLabel.textContent = `${portId}:${symbol}`;
+
+        // 根据端口索引安排位置（简化：环绕节点）
+        const angle = (idx / ports.length) * 2 * Math.PI - Math.PI / 2;
+        const radius = 50;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+
+        roleLabel.setAttribute('x', x);
+        roleLabel.setAttribute('y', y);
+        roleLabel.setAttribute('text-anchor', 'middle');
+        roleLabel.setAttribute('font-size', 10);
+        roleLabel.setAttribute('font-weight', 'bold');
+
+        // 颜色：blocked 用红色，其他用绿色
+        const color = role === 'blocked' ? '#e63946' : '#6EE7B7';
+        roleLabel.setAttribute('fill', color);
+
+        // 背景圆盘
+        const bg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        bg.classList.add('stp-port-role');
+        bg.setAttribute('cx', x);
+        bg.setAttribute('cy', y);
+        bg.setAttribute('r', 12);
+        bg.setAttribute('fill', '#0A0D12');
+        bg.setAttribute('stroke', color);
+        bg.setAttribute('stroke-width', 1.5);
+
+        nodeGroup.appendChild(bg);
+        nodeGroup.appendChild(roleLabel);
+      });
     }
   }
 
