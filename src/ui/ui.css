@@ -1,0 +1,257 @@
+/* Net Tutor UI 样式 */
+
+:root {
+  --surface-0: #05070c;
+  --surface-1: #0a0d12;
+  --surface-2: #0f131c;
+  --surface-3: #161d2b;
+  --surface-4: #1e2636;
+  --accent: #38bdf8;
+  --accent-dim: #0ea5e9;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --success: #6ee7b7;
+  --warning: #e9a568;
+  --danger: #e63946;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-full: 999px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--surface-0);
+  color: var(--text-primary);
+  line-height: 1.6;
+  padding: clamp(1rem, 3vw, 2rem);
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--surface-3);
+}
+
+header h1 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+header p {
+  font-size: clamp(0.875rem, 2vw, 1rem);
+  color: var(--text-secondary);
+}
+
+main {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 容器 */
+.net-tutor-ui {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+/* 控制面板 */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+}
+
+.controls button {
+  padding: 0.5rem 1.25rem;
+  background: var(--accent);
+  color: var(--surface-0);
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.controls button:hover:not(:disabled) {
+  background: var(--accent-dim);
+  transform: translateY(-1px);
+}
+
+.controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+#step-info {
+  margin-left: auto;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* 拓扑画布 */
+.topology {
+  display: block;
+  background: var(--surface-1);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--surface-3);
+}
+
+/* FDB 表格 */
+.fdb-section {
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+}
+
+.fdb-section h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--accent);
+}
+
+.fdb-node-section {
+  margin-bottom: 1.5rem;
+}
+
+.fdb-node-section:last-child {
+  margin-bottom: 0;
+}
+
+.fdb-node-section h4 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.fdb-empty {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.fdb-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.fdb-table thead {
+  background: var(--surface-3);
+}
+
+.fdb-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--surface-4);
+}
+
+.fdb-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--surface-3);
+}
+
+.fdb-table tbody tr:hover {
+  background: var(--surface-3);
+}
+
+/* 事件日志 */
+.event-log {
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.event-log h3 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: var(--accent);
+}
+
+.event-log ul {
+  list-style: none;
+}
+
+.event-log li {
+  font-size: 0.875rem;
+  padding: 0.375rem 0;
+  color: var(--text-secondary);
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.event-log li:nth-child(odd) {
+  background: var(--surface-3);
+  padding-left: 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+/* 滚动条样式 */
+.event-log::-webkit-scrollbar {
+  width: 8px;
+}
+
+.event-log::-webkit-scrollbar-track {
+  background: var(--surface-3);
+  border-radius: var(--radius-sm);
+}
+
+.event-log::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+.event-log::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-dim);
+}
+
+/* 响应式布局 */
+@media (min-width: 768px) {
+  .net-tutor-ui {
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto 1fr auto;
+  }
+
+  .controls {
+    grid-column: 1 / -1;
+  }
+
+  .topology {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .fdb-section {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .event-log {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
+}
+
+/* STP 角色标签 */
+.stp-roles {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

@@ -1,0 +1,10 @@
+{
+  "name": "net-tutor",
+  "version": "0.0.0",
+  "private": true,
+  "description": "浏览器里跑的二层网络教学工具",
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.js\""
+  }
+}

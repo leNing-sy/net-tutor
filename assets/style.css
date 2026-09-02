@@ -1,0 +1,302 @@
+/* net-tutor 阶段 0 样式。
+ *
+ * D5：高亮一律双编码。颜色变化之外必有描边加粗或符号，灰度截图和色盲用户都能读。
+ */
+
+:root {
+  --bg: #f6f7f9;
+  --ink: #1c2430;
+  --muted: #5c6b7a;
+  --line: #c3ccd6;
+  --accent: #1b6ac9;
+  --accent-soft: #dbeafe;
+  --warn: #a8410b;
+  --warn-soft: #fdecd8;
+  --panel: #fff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.6 "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+h2 {
+  margin: 0 0 10px;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.topbar__stage {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.topbar__hint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+kbd {
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: #fff;
+  font-size: 12px;
+}
+
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+button {
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* 键盘可达性：焦点环必须看得见。 */
+button:focus-visible,
+svg:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.controls__label {
+  margin-left: 4px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.panel {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--panel);
+}
+
+.panel--topology {
+  grid-row: span 2;
+}
+
+.panel--log {
+  grid-column: 1 / -1;
+}
+
+#topology {
+  width: 100%;
+  height: auto;
+}
+
+/* ---- 拓扑 ---- */
+
+.wire {
+  stroke: var(--line);
+  stroke-width: 3;
+}
+
+.node__box {
+  fill: #fff;
+  stroke: var(--muted);
+  stroke-width: 2;
+}
+
+/* 双编码：填充变色 + 描边加粗到 3.5px。 */
+.node__box.is-active {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+  stroke-width: 3.5;
+}
+
+.node__id {
+  font-size: 15px;
+  font-weight: 600;
+  text-anchor: middle;
+  fill: var(--ink);
+}
+
+.node__kind {
+  font-size: 11px;
+  text-anchor: middle;
+  fill: var(--muted);
+}
+
+.node__mac {
+  font-size: 11px;
+  text-anchor: middle;
+  fill: var(--muted);
+  font-family: Consolas, "Courier New", monospace;
+}
+
+.port__box {
+  fill: #eef1f4;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+
+.port__box.is-active {
+  fill: var(--accent);
+  stroke: var(--ink);
+  stroke-width: 3;
+}
+
+.port__label {
+  font-size: 11px;
+  text-anchor: middle;
+  fill: var(--muted);
+  font-family: Consolas, "Courier New", monospace;
+}
+
+.frame-marker__box {
+  fill: var(--warn-soft);
+  stroke: var(--warn);
+  stroke-width: 2;
+}
+
+.frame-marker__text {
+  font-size: 12px;
+  font-weight: 600;
+  text-anchor: middle;
+  fill: var(--warn);
+}
+
+/* ---- 面板 ---- */
+
+.hint {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--line);
+  background: #f2f4f7;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+th,
+td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #e6eaee;
+  text-align: left;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.hex td:nth-child(3),
+.fdb td:nth-child(1) {
+  font-family: Consolas, "Courier New", monospace;
+}
+
+.fdb__result {
+  margin: 10px 0 0;
+  padding: 7px 10px;
+  border-radius: 5px;
+  font-size: 13px;
+}
+
+/* 符号（✗ / ✓）在文本里，颜色只是辅助。 */
+.fdb__result--miss {
+  background: var(--warn-soft);
+  color: var(--warn);
+  border: 1px solid var(--warn);
+}
+
+.fdb__result--hit {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
+/* ---- 日志 ---- */
+
+.log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 190px;
+  overflow-y: auto;
+}
+
+.log__item {
+  display: grid;
+  grid-template-columns: 16px 34px 116px 1fr;
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* 双编码：背景色 + 左描边 + 「▶」符号。 */
+.log__item.is-current {
+  background: var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+  font-weight: 600;
+}
+
+.log__marker {
+  color: var(--accent);
+}
+
+.log__seq,
+.log__type {
+  color: var(--muted);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 12px;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .panel--topology {
+    grid-row: auto;
+  }
+}
