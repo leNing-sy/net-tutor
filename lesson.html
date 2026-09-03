@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Net Tutor - 交互式课程</title>
+  <link rel="stylesheet" href="src/ui/ui.css">
+</head>
+<body>
+  <header>
+    <h1>Net Tutor</h1>
+    <p>二层交换机转发与学习演示</p>
+  </header>
+
+  <main id="app"></main>
+
+  <script type="module">
+    import { createTopology } from './src/engine/topology.js';
+    import { simulate } from './src/engine/engine.js';
+    import { createUi } from './src/ui/ui.js';
+    import { spec, injections } from './src/lessons/stage0.js';
+
+    // 运行模拟
+    const topology = createTopology(spec);
+    const events = simulate({ topology, injections });
+
+    console.log(`生成了 ${events.length} 个事件`);
+
+    // 创建 UI
+    const container = document.getElementById('app');
+    const ui = createUi({ container, topology, events, spec });
+
+    // 调试：暴露到全局
+    window.ui = ui;
+    window.events = events;
+    window.topology = topology;
+  </script>
+</body>
+</html>
