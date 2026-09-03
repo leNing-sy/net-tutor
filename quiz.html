@@ -228,11 +228,17 @@
     <div class="quiz-container">
       <h1>练习题</h1>
 
-      <div class="stage-selector">
-        <button data-stage="1" class="active">阶段 1：学习与转发</button>
-        <button data-stage="2">阶段 2：VLAN 隔离</button>
-        <button data-stage="3">阶段 3：STP 与环路</button>
-        <button data-stage="mistakes">错题本</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div class="stage-selector">
+          <button data-stage="1" class="active">阶段 1：学习与转发</button>
+          <button data-stage="2">阶段 2：VLAN 隔离</button>
+          <button data-stage="3">阶段 3：STP 与环路</button>
+          <button data-stage="mistakes">错题本</button>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button id="export-report" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">📊 导出报告</button>
+          <button id="reset-all" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">🔄 全部重置</button>
+        </div>
       </div>
 
       <div class="stats">
@@ -563,6 +569,77 @@
           const stage = btn.dataset.stage === 'mistakes' ? 'mistakes' : parseInt(btn.dataset.stage);
           loadStage(stage);
         });
+      });
+
+      // 导出报告
+      document.getElementById('export-report').addEventListener('click', () => {
+        const allQs = Object.values(allQuestions).flat();
+        const stats = progress.getStats(allQs.length);
+
+        const report = {
+          exportTime: new Date().toISOString(),
+          summary: {
+            total: allQs.length,
+            attempted: stats.attempted,
+            correct: stats.mastered,
+            mistakes: mistakeBook.count(),
+            accuracy: stats.attempted > 0 ? ((stats.mastered / stats.attempted) * 100).toFixed(1) + '%' : '0%',
+          },
+          byStage: [1, 2, 3].map(stage => {
+            const stageQs = allQuestions[stage];
+            const attempted = stageQs.filter(q => progress.records.has(q.id)).length;
+            const correct = stageQs.filter(q => {
+              const record = progress.records.get(q.id);
+              return record && record.correctCount >= 2 && record.correctCount / record.attempts >= 0.8;
+            }).length;
+            return {
+              stage,
+              total: stageQs.length,
+              attempted,
+              correct,
+              accuracy: attempted > 0 ? ((correct / attempted) * 100).toFixed(1) + '%' : '0%',
+            };
+          }),
+          mistakes: mistakeBook.getAll().map(m => {
+            const q = allQs.find(x => x.id === m.questionId);
+            return {
+              questionId: m.questionId,
+              question: q?.question,
+              stage: q?.stage,
+              wrongCount: m.wrongCount,
+            };
+          }),
+        };
+
+        const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `net-tutor-report-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // 全部重置
+      document.getElementById('reset-all').addEventListener('click', () => {
+        if (!confirm('确定要重置所有进度和错题记录吗？此操作不可撤销。')) return;
+
+        localStorage.removeItem('net-tutor-mistakes');
+        localStorage.removeItem('net-tutor-progress');
+        mistakeBook.mistakes.clear();
+        progress.records.clear();
+        userAnswers.clear();
+
+        // 清除所有答题状态
+        document.querySelectorAll('.option').forEach(opt => {
+          opt.classList.remove('selected', 'correct', 'wrong');
+        });
+        document.querySelectorAll('.explanation').forEach(exp => {
+          exp.classList.remove('show');
+        });
+
+        loadStage(currentStage);
+        alert('已重置所有数据');
       });
 
       // 初始加载

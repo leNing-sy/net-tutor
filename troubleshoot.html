@@ -92,11 +92,14 @@
   <body>
     <div class="scenario-selector">
       <h2>选择故障场景</h2>
-      <div class="scenario-buttons">
-        <button data-scenario="1" class="active">场景 1：VLAN 配置错误</button>
-        <button data-scenario="2">场景 2：MAC 地址飘移</button>
-        <button data-scenario="3">场景 3：广播风暴</button>
-        <button data-scenario="4">场景 4：单向链路</button>
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div class="scenario-buttons">
+          <button data-scenario="1" class="active">场景 1：VLAN 配置错误</button>
+          <button data-scenario="2">场景 2：MAC 地址飘移</button>
+          <button data-scenario="3">场景 3：广播风暴</button>
+          <button data-scenario="4">场景 4：单向链路</button>
+        </div>
+        <button id="reset-scenario" style="padding: 0.5rem 1rem; background: var(--surface-2); border: 1px solid var(--surface-3); border-radius: 999px; color: var(--text-primary); cursor: pointer; font-family: var(--font-sans); font-size: 0.875rem;">🔄 重新运行</button>
       </div>
     </div>
 
@@ -189,6 +192,11 @@
         btn.addEventListener('click', () => {
           loadScenario(parseInt(btn.dataset.scenario));
         });
+      });
+
+      // 重新运行当前场景
+      document.getElementById('reset-scenario').addEventListener('click', () => {
+        loadScenario(currentScenario);
       });
 
       // 初始加载场景 1

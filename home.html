@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Net Tutor - 二层网络教学工具</title>
+    <link rel="stylesheet" href="./src/ui/ui.css" />
+    <style>
+      body {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      .hero {
+        text-align: center;
+        margin-bottom: 4rem;
+      }
+      .hero h1 {
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+      }
+      .hero p {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+      }
+      .modules {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 2rem;
+        margin-bottom: 4rem;
+      }
+      .module-card {
+        background: var(--surface-1);
+        border-radius: 16px;
+        padding: 2rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid transparent;
+      }
+      .module-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-4px);
+      }
+      .module-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+      .module-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .module-desc {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 1rem;
+      }
+      .module-meta {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+      .module-meta span {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+      }
+      .features {
+        background: var(--surface-1);
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 4rem;
+      }
+      .features h2 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+      }
+      .features ul {
+        list-style: none;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1rem;
+      }
+      .features li {
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+      }
+      .features li::before {
+        content: "✓";
+        color: var(--accent);
+        font-weight: 700;
+        font-size: 1.25rem;
+      }
+      .quick-links {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .quick-links a {
+        padding: 0.75rem 1.5rem;
+        background: var(--surface-2);
+        border: 1px solid var(--surface-3);
+        border-radius: 999px;
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.2s;
+      }
+      .quick-links a:hover {
+        background: var(--surface-3);
+        border-color: var(--accent);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
+      .stat {
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hero">
+      <h1>Net Tutor</h1>
+      <p>浏览器里跑的二层网络教学工具</p>
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-value">5</div>
+          <div class="stat-label">学习阶段</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">45</div>
+          <div class="stat-label">练习题</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">4</div>
+          <div class="stat-label">故障场景</div>
+        </div>
+        <div class="stat">
+          <div class="stat-value">152</div>
+          <div class="stat-label">单元测试</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modules">
+      <div class="module-card" onclick="window.location.href='index.html'">
+        <div class="module-icon">📚</div>
+        <div class="module-title">交互式课程</div>
+        <div class="module-desc">
+          阶段 0-3：从帧头解析到 STP 收敛，单步播放查看 FDB 变化、VLAN 隔离、端口角色计算
+        </div>
+        <div class="module-meta">
+          <span>⏱️ 30-60 分钟</span>
+          <span>📊 4 个阶段</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="window.location.href='quiz.html'">
+        <div class="module-icon">✏️</div>
+        <div class="module-title">练习题系统</div>
+        <div class="module-desc">
+          45 道题目巩固知识点，支持错题本和进度追踪，可导出学习报告
+        </div>
+        <div class="module-meta">
+          <span>⏱️ 30-50 分钟</span>
+          <span>📝 45 道题</span>
+        </div>
+      </div>
+
+      <div class="module-card" onclick="window.location.href='troubleshoot.html'">
+        <div class="module-icon">🔧</div>
+        <div class="module-title">故障排查演练</div>
+        <div class="module-desc">
+          4 个真实故障场景：VLAN 配置错误、MAC 飘移、广播风暴、单向链路，带提示和答案
+        </div>
+        <div class="module-meta">
+          <span>⏱️ 30-60 分钟</span>
+          <span>🎯 4 个场景</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="features">
+      <h2>特性</h2>
+      <ul>
+        <li>纯前端，无需服务器（ES6 模块 + SVG）</li>
+        <li>单步播放，查看每一步的转发逻辑</li>
+        <li>事件驱动架构，引擎与 UI 分离</li>
+        <li>152 项单元测试，保证引擎正确性</li>
+        <li>支持 FDB 学习、VLAN 隔离、STP 收敛</li>
+        <li>错题本和进度追踪，数据本地持久化</li>
+        <li>键盘操作，无障碍设计（颜色+符号双编码）</li>
+        <li>开源 MIT 许可证，欢迎贡献</li>
+      </ul>
+    </div>
+
+    <div class="features">
+      <h2>快速开始</h2>
+      <p style="margin-bottom: 1rem;">选择一个模块开始学习，或查看文档了解更多：</p>
+      <div class="quick-links">
+        <a href="index.html">开始课程</a>
+        <a href="quiz.html">做练习题</a>
+        <a href="troubleshoot.html">故障排查</a>
+        <a href="docs/USAGE.md">使用指南</a>
+        <a href="docs/CONTRIBUTING.md">贡献指南</a>
+        <a href="https://github.com/lening/net-tutor" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </body>
+</html>
