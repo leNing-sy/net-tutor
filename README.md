@@ -1,7 +1,10 @@
 # net-tutor
 
-> **当前状态：引擎全功能完成，UI 初版完成，152 项单测全过。**
-> 阶段 0-3 的课程数据已就位，可单步播放查看转发逻辑、FDB 变化、VLAN 隔离、STP 收敛。
+> **当前状态：5 个阶段全部完成，引擎全功能，152 项单测全过。**
+> 
+> 阶段 0-3：交互式课程，可单步播放查看转发逻辑、FDB 变化、VLAN 隔离、STP 收敛  
+> 阶段 4：30 道练习题，支持错题本和进度追踪  
+> 阶段 5：4 个故障排查场景，从 VLAN 配置到广播风暴
 
 浏览器里跑的二层网络教学工具。画出拓扑、发一个帧、看它怎么被转发、看 FDB 怎么长出表项。
 
@@ -9,6 +12,8 @@
 没被转发到那个口」**，不需要在旁边补口头说明。
 
 ## 现在能看到什么
+
+### 交互式课程（index.html）
 
 打开 `index.html`，默认加载阶段 0 课程：
 
@@ -19,6 +24,26 @@
 
 切换到阶段 1-3：修改 `index.html` 中的 `import` 路径，从 `stage0.js` 改成 `stage1.js`、`stage2.js` 或 `stage3.js`。
 
+### 练习题系统（quiz.html）
+
+打开 `quiz.html`，包含 30 道练习题：
+
+- **题型多样**：单选、多选、填空、判断、场景题
+- **错题本**：自动记录答错的题目，答对后移除
+- **进度追踪**：统计答题次数、正确率，掌握标准：正确≥2次且正确率≥80%
+- **数据持久化**：错题和进度保存在 localStorage，刷新页面不丢失
+
+### 故障排查演练（troubleshoot.html）
+
+打开 `troubleshoot.html`，包含 4 个真实故障场景：
+
+1. **VLAN 配置错误**：端口 VLAN 配置不匹配导致隔离
+2. **MAC 地址飘移**：重复 MAC 导致 FDB 表项振荡
+3. **广播风暴**：环路 + STP 未启用导致帧无限循环
+4. **单向链路**：链路方向配置错误导致回程失败
+
+每个场景包含：可视化拓扑、渐进式提示、根因分析、修复建议
+
 ## 阶段状态
 
 | 阶段 | 内容 | 引擎 | UI | 课程数据 |
@@ -27,17 +52,20 @@
 | 1 | FDB 学习、命中转发、未命中泛洪、老化 | ✅ | ✅ | ✅ |
 | 2 | VLAN：打/剥 tag、access/trunk、PVID、隔离 | ✅ | ⚠️ 着色未实现 | ✅ |
 | 3 | 多台交换机、环路、BPDU、STP 收敛 | ✅ | ⚠️ 角色标识简化 | ✅ |
-| 4 | 题库、错题本、进度 | - | - | - |
-| 5 | 故障排查演练 | - | - | - |
+| 4 | 练习题系统：题库、错题本、进度追踪 | ✅ | ✅ | ✅ 30 题 |
+| 5 | 故障排查演练：VLAN、MAC飘移、广播风暴、单向链路 | ✅ | ✅ | ✅ 4 场景 |
 
 **说明**：
-- 引擎层（`src/engine/`）已实现阶段 0-3 的全部逻辑：帧解析、FDB 学习与查询、VLAN 标签处理、STP 端口角色计算
+- 引擎层（`src/engine/`）已实现阶段 0-5 的全部逻辑：帧解析、FDB 学习与查询、VLAN 标签处理、STP 端口角色计算、maxEvents 限制、单向链路支持
 - UI 层可单步播放、查看 FDB 表、事件日志，VLAN 着色和 STP 详细可视化待完善
-- 阶段 4-5 需要题库系统和故障场景设计，当前未开始
+- 阶段 4 包含 30 道练习题（单选、多选、填空、判断、场景题），支持错题本和进度统计
+- 阶段 5 包含 4 个故障场景，每个场景带提示和答案
 
 ## 运行方式
 
 无构建步骤，无 npm 依赖。原生 ES module + SVG。
+
+### 本地运行
 
 ```bash
 # 起静态服务器，然后开 http://localhost:8000
@@ -55,7 +83,22 @@ npm test
 
 ES module 需要 http 协议，直接双击 `index.html` 走 `file://` 会被 CORS 挡住。
 
+**访问入口**：
+- 交互式课程：http://localhost:8000/index.html
+- 练习题系统：http://localhost:8000/quiz.html
+- 故障排查：http://localhost:8000/troubleshoot.html
+
 **切换课程**：编辑 `index.html`，修改 `import { spec, injections } from './src/lessons/stage0.js';` 为 `stage1.js`、`stage2.js` 或 `stage3.js`。
+
+### 在线访问
+
+本项目已部署到 GitHub Pages，可直接访问：
+
+🔗 **https://[your-username].github.io/net-tutor/**
+
+（首次推送 main/master 分支后，GitHub Actions 会自动部署）
+
+详细使用说明：[docs/USAGE.md](docs/USAGE.md)
 
 ## 学习路径
 
@@ -113,6 +156,36 @@ ES module 需要 http 协议，直接双击 `index.html` 走 `file://` 会被 CO
   - blocked 端口不转发数据帧，但转发 BPDU
   - 对比场景：禁用 STP 的版本会产生广播风暴（帧无限循环）
 
+### 阶段 4：练习题系统
+
+**目标**：通过 30 道题目巩固前三阶段的知识点。
+
+- 访问：打开 `quiz.html`
+- 题目分布：
+  - 阶段 1（FDB）：10 题 - FDB 结构、学习时机、泛洪条件、老化机制
+  - 阶段 2（VLAN）：10 题 - VLAN 标签位置、access/trunk 端口、FDB 键、隔离原理
+  - 阶段 3（STP）：10 题 - Bridge ID、根桥选举、端口角色、BPDU、广播风暴
+- 功能：
+  - 答题后即时反馈，显示正确答案和解析
+  - 错题自动进入错题本，答对后移除
+  - 进度统计：已作答 / 正确数 / 错题数
+  - 数据持久化到 localStorage
+
+### 阶段 5：故障排查演练
+
+**目标**：在真实故障场景中应用网络知识，学会诊断和定位问题。
+
+- 访问：打开 `troubleshoot.html`
+- 场景 1：**VLAN 配置错误** - sw2 的 p3 口配成 VLAN 20，导致 h1 (VLAN 10) 无法到达 h3 (VLAN 10)
+- 场景 2：**MAC 地址飘移** - h1 和 h2 使用相同 MAC，FDB 表项在 p1 和 p2 之间振荡
+- 场景 3：**广播风暴** - 三交换机环路 + STP 未启用，广播帧无限循环（设置 maxEvents=50 防止卡死）
+- 场景 4：**单向链路** - sw1→sw2 可通但 sw2→sw1 不通，h2 的回复无法到达 h1
+- 每个场景包含：
+  - 完整可视化：拓扑图 + 事件流 + FDB 表
+  - 渐进式提示：逐步引导思考方向
+  - 根因分析：解释为什么会出现这个问题
+  - 修复建议：给出具体的配置修改方法
+
 ## 键盘操作
 
 | 键 | 作用 |
@@ -157,6 +230,8 @@ src/lessons/     课程数据
 
 ```text
 index.html                 入口页面，默认加载 stage0
+quiz.html                  练习题系统，30 道题 + 错题本 + 进度追踪
+troubleshoot.html          故障排查演练，4 个真实场景
 src/
 ├─ engine/
 │  ├─ mac.js               MAC 地址解析、类型判定、字节互转
@@ -164,16 +239,27 @@ src/
 │  ├─ fdb.js               转发表：学习、查询、老化、VLAN 键
 │  ├─ vlan.js              VLAN 标签读写、端口模式、ingress/egress 规则
 │  ├─ stp.js               生成树协议：BPDU 比较、端口角色计算
-│  ├─ topology.js          拓扑对象：节点、端口、链路、对端查询
-│  └─ engine.js            模拟引擎：事件队列驱动、状态机
+│  ├─ topology.js          拓扑对象：节点、端口、链路、对端查询、单向链路
+│  └─ engine.js            模拟引擎：事件队列驱动、状态机、maxEvents 限制
 ├─ ui/
 │  ├─ ui.js                UI 控制器：单步播放、事件处理、视图更新
 │  └─ ui.css               样式：深色主题、流体排版、网格布局
-└─ lessons/
-   ├─ stage0.js            阶段 0：帧头解析、空 FDB、事件流
-   ├─ stage1.js            阶段 1：学习与转发
-   ├─ stage2.js            阶段 2：VLAN 隔离
-   └─ stage3.js            阶段 3：STP 收敛
+├─ lessons/
+│  ├─ stage0.js            阶段 0：帧头解析、空 FDB、事件流
+│  ├─ stage1.js            阶段 1：学习与转发
+│  ├─ stage2.js            阶段 2：VLAN 隔离
+│  ├─ stage3.js            阶段 3：STP 收敛
+│  ├─ troubleshoot1.js     故障场景 1：VLAN 配置错误
+│  ├─ troubleshoot2.js     故障场景 2：MAC 地址飘移
+│  ├─ troubleshoot3.js     故障场景 3：广播风暴
+│  └─ troubleshoot4.js     故障场景 4：单向链路
+└─ quiz/
+   ├─ types.js             题目类型定义和答案验证
+   ├─ mistakes.js          错题本：增删查、导入导出
+   ├─ progress.js          进度追踪：统计、持久化
+   ├─ questions-stage1.js  阶段 1 题库（10 题）
+   ├─ questions-stage2.js  阶段 2 题库（10 题）
+   └─ questions-stage3.js  阶段 3 题库（10 题）
 tests/engine/
 ├─ engine.test.js          引擎集成测试
 ├─ fdb.test.js             FDB 单元测试（学习、查询、老化、VLAN）
