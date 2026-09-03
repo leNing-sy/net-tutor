@@ -27,6 +27,7 @@ import * as stp from './stp.js';
  * @param {boolean} [scenario.options.enableVlan=false] 是否启用 VLAN(阶段 2)
  * @param {Map<string, object>} [scenario.options.vlanConfig] 节点 → 端口 → VLAN 配置
  * @param {number} [scenario.options.agingInterval=10] 每隔多少时刻做一次老化
+ * @param {number} [scenario.options.maxEvents] 事件数量上限（防止广播风暴无限循环）
  * @param {Map<string, object>} [scenario.fdbs] 交换机 id → FDB
  * @returns {object[]} 事件序列
  */
@@ -43,6 +44,7 @@ export function simulate({ topology, injections, options = {}, fdbs = new Map() 
     enableVlan = false,
     vlanConfig = new Map(),
     agingInterval = 10,
+    maxEvents = Infinity,
   } = options;
 
   // 先把所有输入校验完,再产事件。半截事件流会让 UI 画出停在半空的帧。
@@ -79,6 +81,9 @@ export function simulate({ topology, injections, options = {}, fdbs = new Map() 
   }
 
   function emit(t, type, payload) {
+    if (events.length >= maxEvents) {
+      throw new Error(`Event limit reached (${maxEvents}). Possible broadcast storm.`);
+    }
     events.push({ seq: events.length, t, type, ...payload });
   }
 
@@ -129,6 +134,15 @@ export function simulate({ topology, injections, options = {}, fdbs = new Map() 
       if (task.action === 'egress') {
         const linkId = topology.linkAt(task.node, task.port);
         emit(task.t, 'frame.egress', { at: { node: task.node, port: task.port }, link: linkId });
+        // 检查链路方向：如果是单向且方向不对，帧无法到达对端
+        const link = topology.links().find(l => l.id === linkId);
+        const canReach = !link || link.direction === 'bidirectional' ||
+          (link.direction === 'a-to-b' && link.a.node === task.node && link.a.port === task.port) ||
+          (link.direction === 'b-to-a' && link.b.node === task.node && link.b.port === task.port);
+        if (!canReach) {
+          emit(task.t, 'frame.consumed', { at: { node: task.node, port: task.port }, reason: 'unidirectional-link' });
+          continue;
+        }
         queue.push({ action: 'ingress', at: task.far, wire: task.wire, t: task.t });
       }
 

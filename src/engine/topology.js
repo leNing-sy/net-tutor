@@ -37,6 +37,7 @@ export function createTopology(spec) {
   const claimed = new Set();
 
   const links = (spec.links ?? []).map((link, index) => {
+    const direction = link.direction ?? 'bidirectional'; // 'a-to-b', 'b-to-a', 'bidirectional'
     for (const end of [link.a, link.b]) {
       const node = nodes.get(end.node);
       if (node === undefined) {
@@ -51,13 +52,17 @@ export function createTopology(spec) {
       }
       claimed.add(portKey(end.node, end.port));
     }
-    return { ...link, id: link.id ?? `link${index}` };
+    return { ...link, id: link.id ?? `link${index}`, direction };
   });
 
-  // 建对端索引。两个方向都存，peer() 才能对称。
+  // 建对端索引。根据 direction 决定单向还是双向。
   for (const link of links) {
-    linkByPort.set(portKey(link.a.node, link.a.port), { link, far: link.b });
-    linkByPort.set(portKey(link.b.node, link.b.port), { link, far: link.a });
+    if (link.direction === 'bidirectional' || link.direction === 'a-to-b') {
+      linkByPort.set(portKey(link.a.node, link.a.port), { link, far: link.b });
+    }
+    if (link.direction === 'bidirectional' || link.direction === 'b-to-a') {
+      linkByPort.set(portKey(link.b.node, link.b.port), { link, far: link.a });
+    }
   }
 
   return {

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>练习题 - net-tutor</title>
+    <link rel="stylesheet" href="./src/ui/ui.css" />
+    <style>
+      .quiz-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+      }
+      .stage-selector {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+      }
+      .stage-selector button {
+        padding: 0.5rem 1rem;
+        background: var(--surface-2);
+        border: 1px solid var(--surface-3);
+        border-radius: 999px;
+        color: var(--text-primary);
+        cursor: pointer;
+        font-family: var(--font-sans);
+      }
+      .stage-selector button:hover {
+        background: var(--surface-3);
+      }
+      .stage-selector button.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #05070C;
+      }
+      .progress-bar {
+        background: var(--surface-2);
+        border-radius: 999px;
+        height: 8px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+      }
+      .progress-fill {
+        background: var(--accent);
+        height: 100%;
+        transition: width 0.3s;
+      }
+      .question-card {
+        background: var(--surface-1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+      .question-number {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+      }
+      .question-type {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.75rem;
+        background: var(--surface-3);
+        border-radius: 999px;
+        color: var(--text-secondary);
+      }
+      .question-text {
+        font-size: 1.125rem;
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+      .options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .option {
+        padding: 1rem;
+        background: var(--surface-2);
+        border: 2px solid var(--surface-3);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .option:hover {
+        background: var(--surface-3);
+      }
+      .option.selected {
+        border-color: var(--accent);
+        background: var(--surface-3);
+      }
+      .option.correct {
+        border-color: #6EE7B7;
+        background: rgba(110, 231, 183, 0.1);
+      }
+      .option.wrong {
+        border-color: #F87171;
+        background: rgba(248, 113, 113, 0.1);
+      }
+      .option input[type="checkbox"] {
+        margin-right: 0.75rem;
+      }
+      .input-answer {
+        padding: 0.75rem;
+        background: var(--surface-2);
+        border: 2px solid var(--surface-3);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: var(--font-mono);
+        width: 100%;
+        font-size: 1rem;
+      }
+      .input-answer:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .explanation {
+        margin-top: 1rem;
+        padding: 1rem;
+        background: var(--surface-2);
+        border-left: 4px solid var(--accent);
+        border-radius: 4px;
+        display: none;
+      }
+      .explanation.show {
+        display: block;
+      }
+      .explanation-title {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+      }
+      .button-group {
+        display: flex;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 999px;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        font-size: 0.9375rem;
+        transition: all 0.2s;
+      }
+      .btn-primary {
+        background: var(--accent);
+        color: #05070C;
+      }
+      .btn-primary:hover {
+        opacity: 0.9;
+      }
+      .btn-secondary {
+        background: var(--surface-2);
+        color: var(--text-primary);
+        border: 1px solid var(--surface-3);
+      }
+      .btn-secondary:hover {
+        background: var(--surface-3);
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+      .stat-card {
+        background: var(--surface-1);
+        border-radius: 12px;
+        padding: 1rem;
+        text-align: center;
+      }
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--accent);
+      }
+      .stat-label {
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+      }
+      .mistake-book {
+        background: var(--surface-1);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+      }
+      .mistake-book h3 {
+        margin: 0 0 1rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+      .mistake-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+      .mistake-item {
+        padding: 0.75rem;
+        background: var(--surface-2);
+        border-radius: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .mistake-item button {
+        padding: 0.25rem 0.75rem;
+        background: var(--surface-3);
+        border: none;
+        border-radius: 999px;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 0.875rem;
+      }
+      .mistake-item button:hover {
+        background: var(--surface-4, #1E2636);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="quiz-container">
+      <h1>练习题</h1>
+
+      <div class="stage-selector">
+        <button data-stage="1" class="active">阶段 1：学习与转发</button>
+        <button data-stage="2">阶段 2：VLAN 隔离</button>
+        <button data-stage="3">阶段 3：STP 与环路</button>
+        <button data-stage="mistakes">错题本</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">总题数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-attempted">0</div>
+          <div class="stat-label">已作答</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-correct">0</div>
+          <div class="stat-label">正确数</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" id="stat-mistakes">0</div>
+          <div class="stat-label">错题数</div>
+        </div>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+      </div>
+
+      <div id="questions-container"></div>
+
+      <div class="mistake-book" id="mistake-book" style="display: none;">
+        <h3>📕 错题本</h3>
+        <div class="mistake-list" id="mistake-list"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { questions as q1 } from './src/quiz/questions-stage1.js';
+      import { questions as q2 } from './src/quiz/questions-stage2.js';
+      import { questions as q3 } from './src/quiz/questions-stage3.js';
+      import { createMistakeBook } from './src/quiz/mistakes.js';
+      import { createProgress } from './src/quiz/progress.js';
+
+      const allQuestions = { 1: q1, 2: q2, 3: q3 };
+      const mistakeBook = createMistakeBook();
+      const progress = createProgress();
+
+      let currentStage = 1;
+      let currentQuestions = [];
+      let userAnswers = new Map(); // questionId -> answer
+
+      // 从 localStorage 加载数据
+      const savedMistakes = localStorage.getItem('net-tutor-mistakes');
+      if (savedMistakes) mistakeBook.import(savedMistakes);
+
+      const savedProgress = localStorage.getItem('net-tutor-progress');
+      if (savedProgress) progress.import(savedProgress);
+
+      function loadStage(stage) {
+        currentStage = stage;
+        userAnswers.clear();
+
+        // 更新按钮状态
+        document.querySelectorAll('.stage-selector button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.stage === String(stage));
+        });
+
+        if (stage === 'mistakes') {
+          // 显示错题本
+          renderMistakeBook();
+        } else {
+          // 显示题目
+          currentQuestions = allQuestions[stage];
+          document.getElementById('mistake-book').style.display = 'none';
+          renderQuestions();
+        }
+
+        updateStats();
+      }
+
+      function renderQuestions() {
+        const container = document.getElementById('questions-container');
+        container.innerHTML = currentQuestions.map((q, index) => {
+          const isMistake = mistakeBook.has(q.id);
+          const mistakeBadge = isMistake ? ' 🔴' : '';
+
+          return `
+            <div class="question-card" data-question-id="${q.id}">
+              <div class="question-header">
+                <span class="question-number">题目 ${index + 1} / ${currentQuestions.length}${mistakeBadge}</span>
+                <span class="question-type">${getTypeLabel(q.type)}</span>
+              </div>
+              <div class="question-text">${q.question}</div>
+              ${renderQuestionInput(q)}
+              <div class="explanation" id="explanation-${q.id}">
+                <div class="explanation-title">💡 解析</div>
+                <div>${q.explanation}</div>
+              </div>
+              <div class="button-group">
+                <button class="btn btn-primary" onclick="checkAnswer('${q.id}')">提交答案</button>
+                ${q.lesson ? `<button class="btn btn-secondary" onclick="viewLesson(${q.lesson.stage}, ${q.lesson.eventRange[0]})">查看课程</button>` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      function renderQuestionInput(q) {
+        switch (q.type) {
+          case 'single-choice':
+            return `
+              <div class="options">
+                ${q.options.map((opt, i) => `
+                  <div class="option" data-question-id="${q.id}" data-value="${i}">
+                    ${opt}
+                  </div>
+                `).join('')}
+              </div>
+            `;
+
+          case 'multiple-choice':
+            return `
+              <div class="options">
+                ${q.options.map((opt, i) => `
+                  <label class="option" data-question-id="${q.id}">
+                    <input type="checkbox" value="${i}" />
+                    ${opt}
+                  </label>
+                `).join('')}
+              </div>
+            `;
+
+          case 'fill-in-blank':
+            return `<input type="text" class="input-answer" data-question-id="${q.id}" placeholder="输入答案..." />`;
+
+          case 'true-false':
+            return `
+              <div class="options">
+                <div class="option" data-question-id="${q.id}" data-value="true">✓ 正确</div>
+                <div class="option" data-question-id="${q.id}" data-value="false">✗ 错误</div>
+              </div>
+            `;
+
+          case 'scenario':
+            return `
+              <div style="margin-bottom: 1rem; padding: 1rem; background: var(--surface-2); border-radius: 8px; font-family: var(--font-mono); font-size: 0.875rem;">
+                ${q.topology}
+              </div>
+              <div class="options">
+                ${q.options.map((opt, i) => `
+                  <div class="option" data-question-id="${q.id}" data-value="${i}">
+                    ${opt}
+                  </div>
+                `).join('')}
+              </div>
+            `;
+
+          default:
+            return '';
+        }
+      }
+
+      function getTypeLabel(type) {
+        const labels = {
+          'single-choice': '单选题',
+          'multiple-choice': '多选题',
+          'fill-in-blank': '填空题',
+          'true-false': '判断题',
+          'scenario': '场景题',
+        };
+        return labels[type] || type;
+      }
+
+      window.checkAnswer = function(questionId) {
+        const q = currentQuestions.find(x => x.id === questionId);
+        const card = document.querySelector(`.question-card[data-question-id="${questionId}"]`);
+
+        let userAnswer = null;
+        let isCorrect = false;
+
+        switch (q.type) {
+          case 'single-choice':
+          case 'scenario':
+          case 'true-false':
+            const selected = card.querySelector('.option.selected');
+            if (!selected) {
+              alert('请先选择答案');
+              return;
+            }
+            userAnswer = q.type === 'true-false' ? selected.dataset.value === 'true' : parseInt(selected.dataset.value);
+            isCorrect = userAnswer === q.answer;
+            break;
+
+          case 'multiple-choice':
+            const checked = Array.from(card.querySelectorAll('input[type="checkbox"]:checked')).map(x => parseInt(x.value));
+            if (checked.length === 0) {
+              alert('请先选择答案');
+              return;
+            }
+            userAnswer = checked.sort((a, b) => a - b);
+            isCorrect = JSON.stringify(userAnswer) === JSON.stringify(q.answer.sort((a, b) => a - b));
+            break;
+
+          case 'fill-in-blank':
+            const input = card.querySelector('.input-answer');
+            userAnswer = input.value.trim();
+            if (!userAnswer) {
+              alert('请先输入答案');
+              return;
+            }
+            isCorrect = userAnswer.toLowerCase() === q.answer.toLowerCase();
+            break;
+        }
+
+        // 记录进度
+        progress.record(q.id, isCorrect);
+
+        // 更新错题本
+        if (isCorrect) {
+          mistakeBook.remove(q.id);
+        } else {
+          mistakeBook.add(q.id);
+        }
+
+        // 保存到 localStorage
+        localStorage.setItem('net-tutor-mistakes', mistakeBook.export());
+        localStorage.setItem('net-tutor-progress', progress.export());
+
+        // 显示结果
+        if (q.type === 'single-choice' || q.type === 'scenario') {
+          card.querySelectorAll('.option').forEach((opt, i) => {
+            if (i === q.answer) {
+              opt.classList.add('correct');
+            } else if (parseInt(opt.dataset.value) === userAnswer) {
+              opt.classList.add('wrong');
+            }
+          });
+        } else if (q.type === 'true-false') {
+          card.querySelectorAll('.option').forEach(opt => {
+            const val = opt.dataset.value === 'true';
+            if (val === q.answer) {
+              opt.classList.add('correct');
+            } else if (opt.classList.contains('selected')) {
+              opt.classList.add('wrong');
+            }
+          });
+        } else if (q.type === 'multiple-choice') {
+          card.querySelectorAll('label.option').forEach((opt, i) => {
+            if (q.answer.includes(i)) {
+              opt.classList.add('correct');
+            }
+          });
+        }
+
+        document.getElementById(`explanation-${q.id}`).classList.add('show');
+        updateStats();
+      };
+
+      window.viewLesson = function(stage, eventIndex) {
+        window.location.href = `index.html?stage=${stage}&event=${eventIndex}`;
+      };
+
+      function updateStats() {
+        const totalQuestions = currentStage === 'mistakes' ? mistakeBook.count() : currentQuestions.length;
+        const allQs = Object.values(allQuestions).flat();
+        const stats = progress.getStats(allQs.length);
+
+        document.getElementById('stat-total').textContent = allQs.length;
+        document.getElementById('stat-attempted').textContent = stats.attempted;
+        document.getElementById('stat-correct').textContent = stats.mastered;
+        document.getElementById('stat-mistakes').textContent = mistakeBook.count();
+
+        const progressPercent = allQs.length > 0 ? (stats.attempted / allQs.length * 100) : 0;
+        document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+      }
+
+      function renderMistakeBook() {
+        const mistakes = mistakeBook.getAll();
+        const container = document.getElementById('mistake-book');
+        const list = document.getElementById('mistake-list');
+
+        document.getElementById('questions-container').innerHTML = '';
+
+        if (mistakes.length === 0) {
+          container.style.display = 'block';
+          list.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">暂无错题</div>';
+          return;
+        }
+
+        container.style.display = 'block';
+        list.innerHTML = mistakes.map(m => {
+          const q = Object.values(allQuestions).flat().find(x => x.id === m.questionId);
+          if (!q) return '';
+
+          return `
+            <div class="mistake-item">
+              <div>
+                <div>${q.question}</div>
+                <div style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                  错误 ${m.wrongCount} 次
+                </div>
+              </div>
+              <button onclick="reviewMistake('${m.questionId}')">重做</button>
+            </div>
+          `;
+        }).join('');
+      }
+
+      window.reviewMistake = function(questionId) {
+        const q = Object.values(allQuestions).flat().find(x => x.id === questionId);
+        if (!q) return;
+        loadStage(q.stage);
+      };
+
+      // 事件委托：选项点击
+      document.getElementById('questions-container').addEventListener('click', (e) => {
+        const option = e.target.closest('.option:not(label)');
+        if (!option) return;
+
+        const questionId = option.dataset.questionId;
+        const card = document.querySelector(`.question-card[data-question-id="${questionId}"]`);
+
+        // 单选：清除其他选中
+        card.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+        option.classList.add('selected');
+      });
+
+      // 阶段切换
+      document.querySelectorAll('.stage-selector button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const stage = btn.dataset.stage === 'mistakes' ? 'mistakes' : parseInt(btn.dataset.stage);
+          loadStage(stage);
+        });
+      });
+
+      // 初始加载
+      loadStage(1);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>故障排查演练 - net-tutor</title>
+    <link rel="stylesheet" href="./src/ui/ui.css" />
+    <style>
+      .scenario-selector {
+        padding: 1rem;
+        background: var(--surface-1);
+        border-radius: 12px;
+        margin-bottom: 1rem;
+      }
+      .scenario-selector h2 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1.125rem;
+      }
+      .scenario-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .scenario-buttons button {
+        padding: 0.5rem 1rem;
+        background: var(--surface-2);
+        border: 1px solid var(--surface-3);
+        border-radius: 999px;
+        color: var(--text-primary);
+        cursor: pointer;
+        font-family: var(--font-sans);
+        font-size: 0.875rem;
+      }
+      .scenario-buttons button:hover {
+        background: var(--surface-3);
+      }
+      .scenario-buttons button.active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: #05070C;
+      }
+      .hints-panel {
+        padding: 1rem;
+        background: var(--surface-1);
+        border-radius: 12px;
+        margin-top: 1rem;
+      }
+      .hints-panel h3 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1rem;
+      }
+      .hints-panel ul {
+        margin: 0;
+        padding-left: 1.5rem;
+      }
+      .hints-panel li {
+        margin-bottom: 0.5rem;
+      }
+      .solution-panel {
+        padding: 1rem;
+        background: var(--surface-1);
+        border-radius: 12px;
+        margin-top: 1rem;
+        border: 2px solid #6EE7B7;
+      }
+      .solution-panel h3 {
+        margin: 0 0 0.75rem 0;
+        font-size: 1rem;
+        color: #6EE7B7;
+      }
+      .solution-panel p {
+        margin: 0.5rem 0;
+      }
+      .solution-panel strong {
+        color: var(--text-primary);
+      }
+      .solution-toggle {
+        margin-top: 1rem;
+        padding: 0.5rem 1rem;
+        background: var(--surface-2);
+        border: 1px solid var(--surface-3);
+        border-radius: 999px;
+        color: var(--text-primary);
+        cursor: pointer;
+        font-family: var(--font-sans);
+      }
+      .solution-toggle:hover {
+        background: var(--surface-3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scenario-selector">
+      <h2>选择故障场景</h2>
+      <div class="scenario-buttons">
+        <button data-scenario="1" class="active">场景 1：VLAN 配置错误</button>
+        <button data-scenario="2">场景 2：MAC 地址飘移</button>
+        <button data-scenario="3">场景 3：广播风暴</button>
+        <button data-scenario="4">场景 4：单向链路</button>
+      </div>
+    </div>
+
+    <div id="app"></div>
+
+    <div class="hints-panel">
+      <h3>💡 提示</h3>
+      <ul id="hints-list"></ul>
+    </div>
+
+    <button class="solution-toggle" onclick="toggleSolution()">🔍 查看答案</button>
+    <div class="solution-panel" id="solution-panel" style="display: none;">
+      <h3>✓ 答案</h3>
+      <p><strong>根本原因：</strong><span id="solution-cause"></span></p>
+      <p><strong>修复方法：</strong><span id="solution-fix"></span></p>
+    </div>
+
+    <script type="module">
+      import { createUI } from './src/ui/ui.js';
+      import { createTopology } from './src/engine/topology.js';
+      import { simulate } from './src/engine/engine.js';
+      import { scenario as s1 } from './src/lessons/troubleshoot1.js';
+      import { scenario as s2 } from './src/lessons/troubleshoot2.js';
+      import { scenario as s3 } from './src/lessons/troubleshoot3.js';
+      import { scenario as s4 } from './src/lessons/troubleshoot4.js';
+
+      const scenarios = { 1: s1, 2: s2, 3: s3, 4: s4 };
+      let currentScenario = 1;
+      let ui = null;
+
+      function loadScenario(num) {
+        currentScenario = num;
+        const s = scenarios[num];
+
+        // 更新按钮状态
+        document.querySelectorAll('.scenario-buttons button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.scenario === String(num));
+        });
+
+        // 更新提示
+        const hintsList = document.getElementById('hints-list');
+        hintsList.innerHTML = s.hints.map(h => `<li>${h}</li>`).join('');
+
+        // 更新答案
+        document.getElementById('solution-cause').textContent = s.solution.rootCause;
+        document.getElementById('solution-fix').textContent = s.solution.fix;
+        document.getElementById('solution-panel').style.display = 'none';
+
+        // 运行模拟
+        const topology = createTopology(s.spec);
+        const vlanConfigMap = new Map();
+        for (const cfg of s.spec.portConfigs ?? []) {
+          if (!vlanConfigMap.has(cfg.node)) {
+            vlanConfigMap.set(cfg.node, new Map());
+          }
+          vlanConfigMap.get(cfg.node).set(cfg.port, cfg);
+        }
+
+        const events = simulate({
+          topology,
+          injections: s.injections,
+          options: {
+            enableVlan: (s.spec.portConfigs ?? []).length > 0,
+            enableStp: s.spec.stpConfig?.enabled ?? false,
+            vlanConfig: vlanConfigMap,
+            maxEvents: s.maxEvents ?? 1000,
+          },
+        });
+
+        // 创建 UI
+        if (ui) {
+          document.getElementById('app').innerHTML = '';
+        }
+        ui = createUI({
+          container: document.getElementById('app'),
+          spec: s.spec,
+          events,
+          title: s.title,
+          description: s.description,
+        });
+      }
+
+      window.toggleSolution = function() {
+        const panel = document.getElementById('solution-panel');
+        panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+      };
+
+      // 场景切换
+      document.querySelectorAll('.scenario-buttons button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          loadScenario(parseInt(btn.dataset.scenario));
+        });
+      });
+
+      // 初始加载场景 1
+      loadScenario(1);
+    </script>
+  </body>
+</html>
