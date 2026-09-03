@@ -278,6 +278,10 @@
       import { questions as q3 } from './src/quiz/questions-stage3.js';
       import { createMistakeBook } from './src/quiz/mistakes.js';
       import { createProgress } from './src/quiz/progress.js';
+      import { enrichText, initGlossary } from './src/ui/glossary.js';
+
+      // 初始化术语标记系统
+      initGlossary();
 
       const allQuestions = { 1: q1, 2: q2, 3: q3 };
       const mistakeBook = createMistakeBook();
@@ -328,11 +332,11 @@
                 <span class="question-number">题目 ${index + 1} / ${currentQuestions.length}${mistakeBadge}</span>
                 <span class="question-type">${getTypeLabel(q.type)}</span>
               </div>
-              <div class="question-text">${q.question}</div>
+              <div class="question-text">${enrichText(q.question)}</div>
               ${renderQuestionInput(q)}
               <div class="explanation" id="explanation-${q.id}">
                 <div class="explanation-title">💡 解析</div>
-                <div>${q.explanation}</div>
+                <div>${enrichText(q.explanation)}</div>
               </div>
               <div class="button-group">
                 <button class="btn btn-primary" onclick="checkAnswer('${q.id}')">提交答案</button>
@@ -350,7 +354,7 @@
               <div class="options">
                 ${q.options.map((opt, i) => `
                   <div class="option" data-question-id="${q.id}" data-value="${i}">
-                    ${opt}
+                    ${enrichText(opt)}
                   </div>
                 `).join('')}
               </div>
@@ -362,7 +366,7 @@
                 ${q.options.map((opt, i) => `
                   <label class="option" data-question-id="${q.id}">
                     <input type="checkbox" value="${i}" />
-                    ${opt}
+                    ${enrichText(opt)}
                   </label>
                 `).join('')}
               </div>
@@ -382,7 +386,7 @@
           case 'scenario':
             return `
               <div style="margin-bottom: 1rem; padding: 1rem; background: var(--surface-2); border-radius: 8px; font-family: var(--font-mono); font-size: 0.875rem;">
-                ${q.topology}
+                ${enrichText(q.topology)}
               </div>
               <div class="options">
                 ${q.options.map((opt, i) => `

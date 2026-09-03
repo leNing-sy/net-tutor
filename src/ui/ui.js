@@ -5,6 +5,8 @@
 //
 // 架构约束：UI 层只读事件，不修改它们。事件是引擎的输出，UI 是消费者。
 
+import { enrichText, initGlossary } from './glossary.js';
+
 /**
  * 创建 UI 控制器。
  *
@@ -61,6 +63,9 @@ export function createUi({ container, topology, events, spec, options = {} }) {
     container.innerHTML = '';
     container.classList.add('net-tutor-ui');
 
+    // 初始化术语标记系统
+    initGlossary();
+
     // 控制面板
     const controls = document.createElement('div');
     controls.className = 'controls';
@@ -87,7 +92,7 @@ export function createUi({ container, topology, events, spec, options = {} }) {
     // FDB 表格
     const fdbSection = document.createElement('div');
     fdbSection.className = 'fdb-section';
-    fdbSection.innerHTML = '<h3>FDB 表</h3><div id="fdb-table"></div>';
+    fdbSection.innerHTML = `<h3>${enrichText('FDB')} 表</h3><div id="fdb-table"></div>`;
     container.appendChild(fdbSection);
     elements.fdbTable = fdbSection.querySelector('#fdb-table');
 
@@ -487,7 +492,7 @@ export function createUi({ container, topology, events, spec, options = {} }) {
 
   function logEvent(message) {
     const li = document.createElement('li');
-    li.textContent = `[${currentStep + 1}] ${message}`;
+    li.innerHTML = `[${currentStep + 1}] ${enrichText(message)}`;
     elements.eventLog.appendChild(li);
     elements.eventLog.scrollTop = elements.eventLog.scrollHeight;
   }

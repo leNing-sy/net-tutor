@@ -249,6 +249,79 @@ main {
   }
 }
 
+/* 术语标记与浮层 */
+.term {
+  border-bottom: 1px dotted var(--accent);
+  cursor: help;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.term:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent-dim);
+}
+
+.term-tooltip {
+  position: fixed;
+  background: var(--surface-2);
+  border: 1px solid var(--surface-3);
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  max-width: min(320px, 90vw);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  transform: translateX(-50%);
+  animation: tooltip-in 0.15s ease-out;
+}
+
+@keyframes tooltip-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.term-tooltip-title {
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.term-tooltip-short {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.term-tooltip-full {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.term-tooltip-link {
+  display: inline-block;
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-full);
+  transition: background 0.2s;
+}
+
+.term-tooltip-link:hover {
+  background: var(--accent);
+  color: var(--surface-0);
+}
+
+
 /* STP 角色标签 */
 .stp-roles {
   font-weight: 600;

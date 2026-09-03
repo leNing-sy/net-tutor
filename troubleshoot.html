@@ -125,6 +125,10 @@
       import { scenario as s2 } from './src/lessons/troubleshoot2.js';
       import { scenario as s3 } from './src/lessons/troubleshoot3.js';
       import { scenario as s4 } from './src/lessons/troubleshoot4.js';
+      import { enrichText, initGlossary } from './src/ui/glossary.js';
+
+      // 初始化术语标记系统
+      initGlossary();
 
       const scenarios = { 1: s1, 2: s2, 3: s3, 4: s4 };
       let currentScenario = 1;
@@ -141,11 +145,11 @@
 
         // 更新提示
         const hintsList = document.getElementById('hints-list');
-        hintsList.innerHTML = s.hints.map(h => `<li>${h}</li>`).join('');
+        hintsList.innerHTML = s.hints.map(h => `<li>${enrichText(h)}</li>`).join('');
 
         // 更新答案
-        document.getElementById('solution-cause').textContent = s.solution.rootCause;
-        document.getElementById('solution-fix').textContent = s.solution.fix;
+        document.getElementById('solution-cause').innerHTML = enrichText(s.solution.rootCause);
+        document.getElementById('solution-fix').innerHTML = enrichText(s.solution.fix);
         document.getElementById('solution-panel').style.display = 'none';
 
         // 运行模拟
