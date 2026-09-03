@@ -269,6 +269,3 @@ tests/engine/
 ├─ topology.test.js        拓扑测试（节点、链路、对端查询）
 └─ vlan.test.js            VLAN 测试（标签读写、ingress/egress）
 ```
-
-完整方案：`D:\CodexWork\net-tutor\docs\design.md`  
-阶段 0 拆解与测试表：`D:\CodexWork\net-tutor\docs\stage-0.md`
