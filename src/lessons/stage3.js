@@ -47,6 +47,7 @@ export const spec = {
       sw3: 32768,
     },
   },
+  maxEvents: 100, // 防止 STP 计算前的短暂风暴耗尽内存
 };
 
 // 注入一个广播帧
@@ -73,4 +74,5 @@ export const specWithoutStp = {
   stpConfig: {
     enabled: false,
   },
+  maxEvents: 50, // 风暴场景需要更严格的限制
 };
